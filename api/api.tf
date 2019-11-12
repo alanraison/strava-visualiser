@@ -53,10 +53,10 @@ END
 }
 
 resource "aws_api_gateway_model" "token_response" {
-  rest_api_id = aws_api_gateway_rest_api.token.id
-  name = "tokenResponse"
+  rest_api_id  = aws_api_gateway_rest_api.token.id
+  name         = "tokenResponse"
   content_type = "application/json"
-  schema = <<END
+  schema       = <<END
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
@@ -91,7 +91,7 @@ resource "aws_api_gateway_integration" "token" {
   uri                     = "https://www.strava.com/oauth/token"
 
   request_parameters = {
-    "integration.request.querystring.client_id" = "stageVariables.clientId",
+    "integration.request.querystring.client_id"     = "stageVariables.clientId",
     "integration.request.querystring.client_secret" = "stageVariables.clientSecret",
   }
 
@@ -105,30 +105,75 @@ END
   }
 }
 
-resource "aws_api_gateway_stage" "stage" {
+resource "aws_api_gateway_method" "token_options" {
+  rest_api_id   = aws_api_gateway_rest_api.token.id
+  resource_id   = aws_api_gateway_resource.token.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method_response" "token_options" {
   rest_api_id = aws_api_gateway_rest_api.token.id
-  stage_name = "v1"
+  resource_id = aws_api_gateway_resource.token.id
+  http_method = aws_api_gateway_method.token_options.http_method
+  status_code = 200
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration" "cors" {
+  rest_api_id = aws_api_gateway_rest_api.token.id
+  resource_id = aws_api_gateway_resource.token.id
+  http_method = aws_api_gateway_method.token_options.http_method
+  type        = "MOCK"
+}
+
+resource "aws_api_gateway_integration_response" "cors" {
+  rest_api_id = aws_api_gateway_rest_api.token.id
+  resource_id = aws_api_gateway_resource.token.id
+  http_method = aws_api_gateway_method.token_options.http_method
+  status_code = 200
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'http://localhost:3000'"
+  }
+}
+
+
+resource "aws_api_gateway_stage" "stage" {
+  rest_api_id   = aws_api_gateway_rest_api.token.id
+  stage_name    = "v1"
   deployment_id = aws_api_gateway_deployment.deploy.id
 
   variables = {
-    "clientId": var.client_id,
-    "clientSecret": var.client_secret,
+    "clientId" : var.client_id,
+    "clientSecret" : var.client_secret,
   }
 }
 
 resource "aws_api_gateway_deployment" "deploy" {
-  depends_on = [aws_api_gateway_integration.token]
+  depends_on  = [aws_api_gateway_integration.token]
   rest_api_id = aws_api_gateway_rest_api.token.id
 }
 
 resource "aws_api_gateway_method_response" "response_200" {
-  depends_on = [aws_api_gateway_model.token_response]
+  depends_on  = [aws_api_gateway_model.token_response]
   rest_api_id = aws_api_gateway_rest_api.token.id
   resource_id = aws_api_gateway_resource.token.id
   http_method = aws_api_gateway_method.token_post.http_method
   status_code = 200
 
   response_models = {
-    "application/json": aws_api_gateway_model.token_response.name
+    "application/json" : aws_api_gateway_model.token_response.name
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
   }
 }
