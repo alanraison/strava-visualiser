@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import useAuthorizationCode from './useAuthorizationCode';
 import { LoginData, Athlete } from '../model';
 
@@ -6,8 +6,7 @@ import { LoginData, Athlete } from '../model';
 const TOKEN_EXCHANGE_URL = 'http://localhost:3000/v1/token';
 
 const useAuthentication = (scope: string, setLoginData: React.Dispatch<LoginData | Error>) => {
-  const [ authToken, setTokenState ] = useState();
-  useAuthorizationCode(scope, setTokenState);
+  const authToken = useAuthorizationCode(scope);
 
   useEffect(() => {
     if (authToken) {

@@ -3,7 +3,7 @@ import useAuthentication from './utils/useAuthentication';
 import { LoginData } from './model';
 import { Redirect } from 'react-router';
 
-const Authorization: React.FC<{
+const AuthorizationRoute: React.FC<{
   scope: string,
   loginData?: LoginData,
   setLoginData: React.Dispatch<LoginData | Error>,
@@ -21,4 +21,4 @@ const Authorization: React.FC<{
   }
 };
 
-export default Authorization;
+export default AuthorizationRoute;

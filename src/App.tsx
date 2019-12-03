@@ -4,10 +4,11 @@ import {
   Switch,
   Route,
 } from 'react-router-dom';
-import Authorization from './Authorization';
+import AuthorizationRoute from './AuthorizationRoute';
 import './App.css';
 import { LoginData } from './model';
 import DataVisual from './DataVisual';
+import ErrorHandler from './ErrorHandler';
 
 const SCOPE = 'activity:read_all';
 
@@ -35,13 +36,15 @@ const App: React.FC = () => {
           {
             loginData instanceof Error 
             ? <div>Error: {loginData.toString()}</div>
-            : <Authorization scope={SCOPE} loginData={loginData} setLoginData={setLoginData}/>
+            : <AuthorizationRoute scope={SCOPE} loginData={loginData} setLoginData={setLoginData}/>
           }
           <Switch>
             <Route path="/data">
               {
                 loginData && loginData instanceof LoginData
-                ? <DataVisual accessToken={loginData.accessToken} year={2019}/>
+                ? <ErrorHandler>
+                    <DataVisual accessToken={loginData.accessToken} year={2019}/>
+                  </ErrorHandler>
                 : null
               }
             </Route>
